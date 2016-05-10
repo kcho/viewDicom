@@ -45,7 +45,7 @@ def filter_modality(modality, dicomList):
     return newDicomList
 
 
-def getName(dicomName):
+def getName(dicomDir):
     try:
         name = re.search('([A-Z]{3}\d{2,3}_[A-Z]{2,3}', dicomName).group(1)
     except:
@@ -62,18 +62,37 @@ def prac():
         except:
             print dicomDir, 'does not work'
 
-def viewDicom(dataLocation, sliceNum, outdir):
-    print dataLocation
-    #name = re.sub(dataLocation, '\/', '_')
-    name = getName(dataLocation)
 
-    dicomFiles = [os.path.join(dataLocation,x) for x in os.listdir(dataLocation) if x.endswith('dcm') or \
+def noMixDicom(dicomList):
+    instanceNumList = []
+    for i in dicomList:
+        ds = dicom.read_file(i)
+        instanceNum = ds.InstanceNumber
+        if instanceNum in instanceNumList:
+            return False
+            break
+        else:
+            instanceNumList.append(instanceNum)
+    return True
+
+
+def viewDicom(dicomDir, sliceNum, outdir):
+    #name = re.sub(dicomDir, '\/', '_')
+    name = getName(dicomDir)
+
+
+    dicomFiles = [os.path.join(dicomDir,x) for x in os.listdir(dicomDir) if x.endswith('dcm') or \
                                                      x.endswith('IMA') or \
                                                      x.endswith('DCM')]
 
-    # Get ref file
-    #RefDs = dicom.read_file(dicomFiles[0])
+    if noMixDicom(dicomFiles):
+        pass
+    else:
+        os.error('There are mixture of dicoms')
 
+
+    # Get ref file
+    # RefDs = dicom.read_file(dicomFiles[0])
     RefDs = dicom.read_file(dicomFiles[sliceNum])
 
     # Load dimensions based on the number of rows, columns, and slices (along the Z axis)
@@ -88,7 +107,6 @@ def viewDicom(dataLocation, sliceNum, outdir):
 
     # loop through all the DICOM files
 
-    instance_number = {}
     num=0
     pbar=ProgressBar().start()
     for filenameDCM in dicomFiles:
@@ -96,10 +114,9 @@ def viewDicom(dataLocation, sliceNum, outdir):
         num+=100 / len(dicomFiles)
         # read the file
         ds = dicom.read_file(filenameDCM)
-        instance_number[filenameDCM] = ds.InstanceNumber - 1
         # store the raw image data
         #ArrayDicom[:, :, dicomFiles.index(filenameDCM)] = ds.pixel_array  
-        ArrayDicom[:, :, instance_number[filenameDCM]] = ds.pixel_array  
+        ArrayDicom[:, :, filenameDCM] = ds.pixel_array  
     pbar.finish()
 
 
