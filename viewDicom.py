@@ -152,19 +152,19 @@ def viewDicom(dicomDir, sliceNum, outdir, verbose=False):
         if 'MOSAIC' in ds.ImageType:
             # DTI
             mosaic_data = np.flipud(ArrayDicom[:, :, sliceNum])
-            slices = blockshaped(mosaic_data, 128, 128)#$[:,:,:]
-            stacked = np.hstack([
-                np.flipud(slices[38,:,:]), 
-                np.flipud(slices[39,:,:]),
-                np.flipud(slices[40,:,:])
-                ])
+            #slices = blockshaped(mosaic_data, 128, 128)#$[:,:,:]
             #plt.pcolormesh(stacked)
             plt.pcolormesh(mosaic_data)
 
         else:
-            plt.pcolormesh(np.flipud(ArrayDicom[:, :, sliceNum]))
-            #plt.pcolormesh(np.flipud(ArrayDicom[:, -sliceNum, :]))
-        #plt.imshow(ds.pixel_array)
+            if sliceNum < 0:
+                sliceNums = [sliceNum-x for x in range(5)]
+            else:
+                sliceNums = [sliceNum+x for x in range(5)]
+
+            stacked = np.hstack([np.flipud(ArrayDicom[x,:,:]) for x in sliceNums])
+            plt.pcolormesh(stacked)
+
     except:
         plt.pcolormesh(np.flipud(ArrayDicom[:,:,sliceNum]))
 
@@ -174,7 +174,6 @@ def viewDicom(dicomDir, sliceNum, outdir, verbose=False):
     #print os.path.join(outdir, name+'.png')
     #plt.savefig(os.path.join(outdir, name+'.png'))
     plt.show()
-
 
 
 def blockshaped(arr, nrows, ncols):
