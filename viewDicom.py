@@ -228,7 +228,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description=textwrap.dedent('''\
-            {codeName} : Visualize the dicoms
+            {codeName} : Visualize the dicoms using matplotlib
             ========================================
             '''.format(codeName=os.path.basename(__file__))))
 
